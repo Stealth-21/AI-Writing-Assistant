@@ -1,0 +1,58 @@
+# .github/workflows/ci-cd.yml
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build-test-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      # Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      # Frontend Install and Test
+      - name: Frontend Install and Test
+        run: |
+          cd frontend
+          npm install
+          npm test -- --coverage
+
+      # Backend Install and Test
+      - name: Backend Install and Test
+        run: |
+          cd ../backend
+          npm install
+          npm test
+
+      # Setup Python and AI Model Test
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+
+      - name: AI Model Install and Test
+        run: |
+          cd ../ai-model
+          python -m venv venv
+          source venv/bin/activate
+          pip install -r requirements.txt
+          pytest
+
+      # Deploy to Heroku (optional, later step)
+      # - name: Deploy to Heroku
+      #   if: github.ref == 'refs/heads/main'
+      #   uses: akhileshns/heroku-deploy@v3.12.12
+      #   with:
+      #     heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+      #     heroku_app_name: "your-heroku-app-name-backend"
+      #     heroku_email: "your-email@example.com"
